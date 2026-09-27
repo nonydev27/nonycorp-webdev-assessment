@@ -369,14 +369,14 @@ const timerContainer = document.getElementById('timer-display');
 
 let studentName = "";
 let timerInterval;
-let timeRemaining = 420; // 7 minutes in seconds
+let timeRemaining = 600; // 10 minutes in seconds
 let isSubmitted = false;
 
-// Quiz closes at this exact instant. 5:00 PM GMT today.
-// 17:00 UTC = 17 * 60 * 60 * 1000 ms into the day.
+// Quiz closes at this exact instant. 11:00 PM GMT today.
+// 23:00 UTC = 23 * 60 * 60 * 1000 ms into the day.
 const DEADLINE = (() => {
     const now = new Date();
-    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 17, 0, 0);
+    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 0, 0);
 })();
 
 function isPastDeadline() {
@@ -388,7 +388,7 @@ function isPastDeadline() {
 // so there is nothing to disable afterwards.
 if (isPastDeadline()) {
     startScreen.innerHTML = `<h2>Assessment Closed</h2>
-                             <p>The deadline for this assessment has passed (5:00 PM GMT). Submissions are no longer accepted.</p>`;
+                             <p>The deadline for this assessment has passed (11:00 PM GMT). Submissions are no longer accepted.</p>`;
 } else if (localStorage.getItem('nonyCorpQuizCompleted') === 'true') {
     startScreen.innerHTML = `<h2>Assessment Already Completed</h2>
                              <p>You have already submitted this assessment. Reattempts are not allowed.</p>`;
@@ -399,7 +399,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
     // Re-check the clock at click time: the page may have been left open
     // across the deadline.
     if (isPastDeadline()) {
-        alert('The deadline for this assessment (5:00 PM GMT) has passed. Submissions are no longer accepted.');
+        alert('The deadline for this assessment (11:00 PM GMT) has passed. Submissions are no longer accepted.');
         location.reload();
         return;
     }
@@ -413,7 +413,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
     studentName = nameInput;
     startScreen.classList.add('hidden');
     quizSection.classList.remove('hidden');
-    
+
     buildQuiz();
     startTimer();
 
@@ -425,10 +425,10 @@ document.getElementById('start-btn').addEventListener('click', () => {
 function startTimer() {
     timerInterval = setInterval(() => {
         timeRemaining--;
-        
+
         const minutes = Math.floor(timeRemaining / 60);
         const seconds = timeRemaining % 60;
-        
+
         timeDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
         if (timeRemaining <= 60) { // Under 1 minute
@@ -438,7 +438,7 @@ function startTimer() {
         // Close the quiz if the wall-clock deadline arrives mid-attempt.
         if (isPastDeadline()) {
             clearInterval(timerInterval);
-            alert("The 5:00 PM GMT deadline has passed. Your answers will be submitted now.");
+            alert("The 11:00 PM GMT deadline has passed. Your answers will be submitted now.");
             processSubmission("Deadline Reached");
             return;
         }
