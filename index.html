@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Development Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <!-- Branded for your bootcamps -->
+        <h1>Nony Corp - Tech Bootcamp Quiz</h1>
+        <p>HTML, CSS, and Git/GitHub</p>
+    </header>
+
+    <main class="quiz-container">
+        <div id="quiz-content">
+            <!-- Questions will be dynamically inserted here by JavaScript -->
+        </div>
+        
+        <button id="submit-btn">Submit Answers</button>
+        
+        <div id="results-display" class="hidden">
+            <h2>Your Score: <span id="score"></span></h2>
+            <button id="reload-btn" onclick="location.reload()">Try Again</button>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
