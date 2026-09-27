@@ -115,3 +115,58 @@ button:hover {
 #reload-btn:hover {
     background-color: #059669;
 }
+
+/* Keep all your existing CSS and add these to the bottom */
+
+.card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+#start-screen h2 {
+    margin-bottom: 1rem;
+    color: #1e293b;
+}
+
+#start-screen p {
+    color: #ef4444;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+}
+
+#student-name {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+#timer-display {
+    position: sticky;
+    top: 0;
+    background: #0f172a;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    z-index: 100;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.warning {
+    color: #ef4444;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.5; }
+}

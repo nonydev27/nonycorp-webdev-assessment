@@ -8,21 +8,36 @@
 </head>
 <body>
     <header>
-        <!-- Branded for your bootcamps -->
-        <h1>Nony Corp - Tech Bootcamp Quiz</h1>
-        <p>HTML, CSS, and Git/GitHub</p>
+        <h1>Nony Corp - Web Dev Bootcamp</h1>
+        <p>HTML, CSS, and Git/GitHub Assessment</p>
     </header>
 
     <main class="quiz-container">
-        <div id="quiz-content">
-            <!-- Questions will be dynamically inserted here by JavaScript -->
+        <!-- Start Screen to collect name -->
+        <div id="start-screen" class="card">
+            <h2>Enter your details to begin</h2>
+            <p>You have 30 minutes. If you leave this tab or window, the quiz will auto-submit.</p>
+            <input type="text" id="student-name" placeholder="Enter your full name" required>
+            <button id="start-btn">Start Assessment</button>
+        </div>
+
+        <!-- Quiz Section (Hidden until start) -->
+        <div id="quiz-section" class="hidden">
+            <div id="timer-display">Time Remaining: <span id="time">30:00</span></div>
+            
+            <div id="quiz-content">
+                <!-- Questions dynamically injected -->
+            </div>
+            
+            <button id="submit-btn">Submit Answers</button>
         </div>
         
-        <button id="submit-btn">Submit Answers</button>
-        
-        <div id="results-display" class="hidden">
-            <h2>Your Score: <span id="score"></span></h2>
-            <button id="reload-btn" onclick="location.reload()">Try Again</button>
+        <!-- Results Section -->
+        <div id="results-display" class="hidden card">
+            <h2>Assessment Complete</h2>
+            <p id="student-result-name"></p>
+            <h3>Your Score: <span id="score"></span></h3>
+            <p id="submission-status"></p>
         </div>
     </main>
 

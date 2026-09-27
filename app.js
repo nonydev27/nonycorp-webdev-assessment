@@ -356,106 +356,201 @@ const quizData = [
     }
 ];
 
+// ... [KEEP YOUR EXISTING quizData ARRAY HERE] ...
+
+const startScreen = document.getElementById('start-screen');
+const quizSection = document.getElementById('quiz-section');
 const quizContent = document.getElementById('quiz-content');
 const submitBtn = document.getElementById('submit-btn');
 const resultsDisplay = document.getElementById('results-display');
 const scoreSpan = document.getElementById('score');
+const timeDisplay = document.getElementById('time');
+const timerContainer = document.getElementById('timer-display');
 
+let studentName = "";
+let timerInterval;
+let timeRemaining = 1800; // 30 minutes in seconds
+let isSubmitted = false;
+
+// 1. Check if they already took it
+if (localStorage.getItem('nonyCorpQuizCompleted') === 'true') {
+    startScreen.innerHTML = `<h2>Assessment Already Completed</h2>
+                             <p>You have already submitted this assessment. Reattempts are not allowed.</p>`;
+}
+
+// 2. Start Quiz Logic
+document.getElementById('start-btn').addEventListener('click', () => {
+    const nameInput = document.getElementById('student-name').value.trim();
+    if (!nameInput) {
+        alert('Please enter your name to begin.');
+        return;
+    }
+
+    studentName = nameInput;
+    startScreen.classList.add('hidden');
+    quizSection.classList.remove('hidden');
+    
+    buildQuiz();
+    startTimer();
+
+    // Anti-Cheat: Detect tab switching or window minimizing
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+// 3. Timer Logic
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeRemaining--;
+        
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        
+        timeDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        if (timeRemaining <= 300) { // Under 5 minutes
+            timerContainer.classList.add('warning');
+        }
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            alert("Time is up! Your answers will be automatically submitted.");
+            processSubmission("Time Expired");
+        }
+    }, 1000);
+}
+
+// 4. Anti-Cheat Logic
+function handleVisibilityChange() {
+    if (document.hidden && !isSubmitted) {
+        alert("Warning: You left the assessment window! The quiz is now auto-submitting.");
+        processSubmission("Auto-submitted due to tab switch/leaving window");
+    }
+}
+
+// Escape text so that code samples like <h1> or <br> are shown literally
+// instead of being parsed as HTML by innerHTML.
+function escapeHTML(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// 5. Build Quiz (Same as before)
 function buildQuiz() {
     const output = [];
-
     quizData.forEach((currentQuestion, questionNumber) => {
         const optionsHTML = [];
-
-        for (letter in currentQuestion.options) {
+        for (const letter in currentQuestion.options) {
             optionsHTML.push(
                 `<label class="options-label">
                     <input type="radio" name="question${questionNumber}" value="${letter}">
-                    <strong>${letter.toUpperCase()}:</strong> ${currentQuestion.options[letter]}
+                    <strong>${letter.toUpperCase()}:</strong> ${escapeHTML(currentQuestion.options[letter])}
                 </label>`
             );
         }
-
         output.push(
             `<div class="question-card">
-                <h3>${currentQuestion.question}</h3>
-                <div class="options">
-                    ${optionsHTML.join('')}
-                </div>
+                <h3>${escapeHTML(currentQuestion.question)}</h3>
+                <div class="options">${optionsHTML.join('')}</div>
             </div>`
         );
     });
-
     quizContent.innerHTML = output.join('');
 }
 
-function showResults() {
+// 6. Manual Submit Button
+submitBtn.addEventListener('click', () => {
+    const confirmSubmit = confirm("Are you sure you want to submit your answers?");
+    if (confirmSubmit) {
+        processSubmission("Completed Normally");
+    }
+});
+
+// 7. Process Score and Send to Backend
+function processSubmission(statusReason) {
+    if (isSubmitted) return;
+    isSubmitted = true;
+    clearInterval(timerInterval);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+    // Lock them out from future attempts
+    localStorage.setItem('nonyCorpQuizCompleted', 'true');
+
+    // Calculate Score
     const answerContainers = quizContent.querySelectorAll('.options');
     let numCorrect = 0;
 
-    // Check if the user missed any questions before submitting
-    let missedQuestions = false;
-
-    quizData.forEach((currentQuestion, questionNumber) => {
-        const answerContainer = answerContainers[questionNumber];
-        const selector = `input[name=question${questionNumber}]:checked`;
-        const checkedInput = answerContainer.querySelector(selector);
-        
-        if (!checkedInput) {
-            missedQuestions = true;
-        }
-    });
-
-    if (missedQuestions) {
-        const confirmSubmit = confirm("You haven't answered all the questions. Are you sure you want to submit?");
-        if (!confirmSubmit) return; // Stop execution if they click cancel
-    }
-
-    // Calculate score
     quizData.forEach((currentQuestion, questionNumber) => {
         const answerContainer = answerContainers[questionNumber];
         const selector = `input[name=question${questionNumber}]:checked`;
         const userAnswer = (answerContainer.querySelector(selector) || {}).value;
 
-        // Reset styling for all labels in this question
-        const allLabels = answerContainer.querySelectorAll('.options-label');
-        allLabels.forEach(label => {
-            label.style.backgroundColor = '';
-            label.style.borderColor = '#cbd5e1';
-            label.style.color = '#333';
-        });
-
         if (userAnswer === currentQuestion.correct) {
             numCorrect++;
-            // Highlight the correct answer box in green
-            const correctLabel = answerContainer.querySelector(`input[value="${userAnswer}"]`).parentElement;
-            correctLabel.style.backgroundColor = '#dcfce7'; // light green
-            correctLabel.style.borderColor = '#22c55e';
-            correctLabel.style.color = '#166534';
-        } else {
-            // Highlight their wrong answer box in red
-            if (userAnswer) {
-                const wrongLabel = answerContainer.querySelector(`input[value="${userAnswer}"]`).parentElement;
-                wrongLabel.style.backgroundColor = '#fee2e2'; // light red
-                wrongLabel.style.borderColor = '#ef4444';
-                wrongLabel.style.color = '#991b1b';
-            }
-            
-            // Show them the correct answer in green
-            const correctLabel = answerContainer.querySelector(`input[value="${currentQuestion.correct}"]`).parentElement;
-            correctLabel.style.backgroundColor = '#dcfce7'; 
-            correctLabel.style.borderColor = '#22c55e';
         }
     });
 
-    submitBtn.classList.add('hidden');
+    const finalScore = `${numCorrect}/${quizData.length}`;
+
+    // Show results to student
+    quizSection.classList.add('hidden');
     resultsDisplay.classList.remove('hidden');
-    scoreSpan.innerText = `${numCorrect} / ${quizData.length}`;
+    document.getElementById('student-result-name').innerText = `Student: ${studentName}`;
+    scoreSpan.innerText = finalScore;
+
+    // Send data to you
+    sendDataToInstructor(studentName, finalScore, statusReason);
     
-    // Scroll to the top to see the score
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-buildQuiz();
+// 8. API call to save the scores
+// 8. API call to send the scores to your email via Formspree
+async function sendDataToInstructor(name, score, status) {
+    const statusText = document.getElementById('submission-status');
+    statusText.innerText = "Sending scores to Karl's email...";
 
-submitBtn.addEventListener('click', showResults);
+    // The data that will appear in your email
+    const payload = {
+        Student_Name: name,
+        Final_Score: score,
+        Submission_Status: status,
+        Timestamp: new Date().toLocaleString()
+    };
+
+    // PASTE YOUR FORMSPREE LINK BELOW, e.g. 'https://formspree.io/f/abcdwxyz'
+    const formspreeEndpoint = 'https://formspree.io/f/mzezkver';
+
+    // Guard: if the endpoint is missing or malformed, tell the user instead of failing silently.
+    if (!formspreeEndpoint || !/^https?:\/\//.test(formspreeEndpoint)) {
+        console.warn('Formspree endpoint is not configured. Set formspreeEndpoint in app.js.');
+        statusText.innerText = "Score not sent automatically (instructor endpoint not configured). Please take a screenshot of your score and send it to the instructor.";
+        statusText.style.color = "#ef4444";
+        return;
+    }
+
+    try {
+        const response = await fetch(formspreeEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            statusText.innerText = "Scores successfully sent to instructor!";
+            statusText.style.color = "green";
+        } else {
+            throw new Error('Failed to send');
+        }
+    } catch (error) {
+        console.error(error);
+        statusText.innerText = "Error sending email. Please take a screenshot of your score and send it to the instructor.";
+        statusText.style.color = "#ef4444";
+    }
+}
