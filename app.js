@@ -369,17 +369,41 @@ const timerContainer = document.getElementById('timer-display');
 
 let studentName = "";
 let timerInterval;
-let timeRemaining = 1800; // 30 minutes in seconds
+let timeRemaining = 420; // 7 minutes in seconds
 let isSubmitted = false;
 
-// 1. Check if they already took it
-if (localStorage.getItem('nonyCorpQuizCompleted') === 'true') {
+// Quiz closes at this exact instant. 5:00 PM GMT today.
+// 17:00 UTC = 17 * 60 * 60 * 1000 ms into the day.
+const DEADLINE = (() => {
+    const now = new Date();
+    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 17, 0, 0);
+})();
+
+function isPastDeadline() {
+    return Date.now() >= DEADLINE;
+}
+
+// 1. Check if they already took it, or if the deadline has passed
+// Note: replacing startScreen.innerHTML removes the start button entirely,
+// so there is nothing to disable afterwards.
+if (isPastDeadline()) {
+    startScreen.innerHTML = `<h2>Assessment Closed</h2>
+                             <p>The deadline for this assessment has passed (5:00 PM GMT). Submissions are no longer accepted.</p>`;
+} else if (localStorage.getItem('nonyCorpQuizCompleted') === 'true') {
     startScreen.innerHTML = `<h2>Assessment Already Completed</h2>
                              <p>You have already submitted this assessment. Reattempts are not allowed.</p>`;
 }
 
 // 2. Start Quiz Logic
 document.getElementById('start-btn').addEventListener('click', () => {
+    // Re-check the clock at click time: the page may have been left open
+    // across the deadline.
+    if (isPastDeadline()) {
+        alert('The deadline for this assessment (5:00 PM GMT) has passed. Submissions are no longer accepted.');
+        location.reload();
+        return;
+    }
+
     const nameInput = document.getElementById('student-name').value.trim();
     if (!nameInput) {
         alert('Please enter your name to begin.');
@@ -407,8 +431,16 @@ function startTimer() {
         
         timeDisplay.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
-        if (timeRemaining <= 300) { // Under 5 minutes
+        if (timeRemaining <= 60) { // Under 1 minute
             timerContainer.classList.add('warning');
+        }
+
+        // Close the quiz if the wall-clock deadline arrives mid-attempt.
+        if (isPastDeadline()) {
+            clearInterval(timerInterval);
+            alert("The 5:00 PM GMT deadline has passed. Your answers will be submitted now.");
+            processSubmission("Deadline Reached");
+            return;
         }
 
         if (timeRemaining <= 0) {

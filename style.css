@@ -138,6 +138,15 @@ button:hover {
     font-weight: bold;
 }
 
+#start-screen p.deadline-note {
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
 #student-name {
     width: 100%;
     padding: 1rem;
